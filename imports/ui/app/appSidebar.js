@@ -82,6 +82,11 @@ const adminMenuItems = [
     icon: 'fa-cog',
     path: 'projectSetup',
   },
+  {
+    name: 'Agencies',
+    icon: 'fa-cog',
+    path: 'agenciesList',
+  },
 ];
 
 

@@ -32,6 +32,7 @@ const fields = {
   'services.HMIS.projectGroup': 1,
   createdAt: 1,
   projectsLinked: 1, // TODO: is it required??
+  activeProjectId: 1,
 };
 
 Meteor.publish('users.all', function publishAllUsers() {
@@ -43,7 +44,7 @@ Meteor.publish('users.all', function publishAllUsers() {
       cursor.fetch(), Meteor.settings.connectionLimit,
       (user, next) => {
         if (user.services && user.services.HMIS && user.services.HMIS.accountId) {
-          const account = api.debug().getUser(user.services.HMIS.accountId);
+          const account = api.getUser(user.services.HMIS.accountId);
           updateHmisProfile(user._id, account);
         } else {
           updateHmisProfile(user._id, {
