@@ -10,9 +10,12 @@ Meteor.methods({
     check(doc, Surveys.schema);
     // TODO: permissions check
     const id = Surveys.insert(doc);
+
     try {
       Meteor.call('surveys.uploadQuestions', id);
       Meteor.call('surveys.upload', id);
+      // remove local survey uplon successful upload
+      Surveys.remove(id);
     } catch (e) {
       logger.error(`Failed to upload survey ${e}`);
       throw new Meteor.Error('hmis.api', `Survey created, failed to upload! ${e}`);
@@ -20,26 +23,39 @@ Meteor.methods({
     return id;
   },
 
-  'surveys.update'(id, doc, uploadToHmis = false) {
-    logger.info(`METHOD[${Meteor.userId()}]: surveys.update`, id, doc);
+  'surveys.update'(id, doc) {
+    logger.info(`METHOD[${this.userId}]: surveys.update`, id);
 
-    if (doc.$set) {
-      check(doc, Surveys.schema);
-      Surveys.update(id, doc);
-    } else {
-      Surveys.schema.clean(doc);
-      check(doc, Surveys.schema);
-      Surveys.update(id, doc, { bypassCollection2: true });
+    // TODO: permissions
+    check(id, String);
+
+    const hc = HmisClient.create(this.userId);
+    let alreadyUploaded;
+    try {
+      hc.api('survey2').getSurvey(id);
+      alreadyUploaded = true;
+    } catch (err) {
+      alreadyUploaded = false;
     }
 
-    if (uploadToHmis) {
-      try {
-        Meteor.call('surveys.uploadQuestions', id);
-        Meteor.call('surveys.upload', id);
-      } catch (e) {
-        logger.error(`Failed to upload survey ${e}`, e.stack);
-        throw new Meteor.Error('hmis.api', `Survey updated, failed to upload! ${e}`);
-      }
+    // create temp survey in mongo
+    const tempId = Surveys.insert({
+      ...doc,
+      hmis: {
+        surveyId: alreadyUploaded ? id : undefined,
+      },
+    });
+
+    try {
+      Meteor.call('surveys.uploadQuestions', tempId);
+      Meteor.call('surveys.upload', tempId);
+      Surveys.remove(id);
+    } catch (e) {
+      logger.error(`Failed to upload survey ${e}`);
+      throw new Meteor.Error('hmis.api', `Survey created, failed to upload! ${e}`);
+    } finally {
+      // remove temp survey
+      Surveys.remove(tempId);
     }
     return true;
   },
@@ -48,7 +64,12 @@ Meteor.methods({
     logger.info(`METHOD[${Meteor.userId()}]: surveys.delete`, id);
     check(id, String);
     // TODO: permissions check
-    return Surveys.remove(id);
+    const numRemoved = Surveys.remove(id);
+    if (numRemoved === 0) {
+      const hc = HmisClient.create(this.userId);
+      return hc.api('survey2').deleteSurvey(id);
+    }
+    return numRemoved;
   },
 
   'surveys.uploadQuestions'(id) {
@@ -136,10 +157,10 @@ Meteor.methods({
     let hmis;
     let surveyId;
 
-    // upload survey
+    // upload survey to hmis
     if (survey.hmis && survey.hmis.surveyId) {
       surveyId = survey.hmis.surveyId;
-      logger.info(`Uploading existing survey ${survey.title} (${id})`);
+      logger.info(`Uploading existing survey ${survey.title} (${surveyId})`);
       hc.api('survey2').updateSurvey(surveyId, survey);
       hmis = survey.hmis;
     } else {
@@ -191,5 +212,6 @@ Meteor.methods({
     hmis.status = 'uploaded';
     logger.debug('updating survey HMIS data', hmis);
     Surveys.update(id, { $set: { hmis } });
+    return surveyId;
   },
 });
