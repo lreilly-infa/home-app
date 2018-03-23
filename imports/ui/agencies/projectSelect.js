@@ -1,14 +1,14 @@
 import './projectSelect.html';
-import GlobalProjects from '/imports/api/globalProjects/globalProjects';
+import Agencies from '/imports/api/agencies/agencies';
 import Projects from '/imports/api/projects/projects';
 import Alert from '/imports/ui/alert';
 
 const NO_PROJECT_SELECTED = '--- No project selected ---';
 
 function projectOptions() {
-  const allProjects = GlobalProjects.find().fetch()
+  const allProjects = Agencies.find().fetch()
   .reduce((all, agency) => {
-    const projectsIds = agency.projectsWithUser(Meteor.userId());
+    const projectsIds = agency.projectsOfUser(Meteor.userId());
     const agencyProjects = projectsIds.map(projectId => ({
       agency,
       project: Projects.findOne(projectId) || { _id: projectId },
@@ -16,10 +16,11 @@ function projectOptions() {
     return [...all, ...agencyProjects];
   }, []);
 
+  const user = Meteor.user();
   const options = allProjects.map(({ agency, project }) => ({
     value: project._id,
     label: `${agency.agencyName}/${project.projectName || project._id}`,
-    selected: Meteor.user().activeProjectId === project._id,
+    selected: user ? user.activeProjectId === project._id : false,
   }));
 
   return [{
@@ -71,5 +72,5 @@ Template.projectSelect.events({
         }
       }
     });
-  },
+  }
 });

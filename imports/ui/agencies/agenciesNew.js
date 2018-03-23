@@ -14,12 +14,12 @@ Template.agenciesNew.helpers({
 AutoForm.addHooks('agenciesNew', {
   onSubmit: function submit(insertDoc) {
     this.event.preventDefault();
-    Meteor.call('globalProjects.create', form2doc(insertDoc), (err, res) => {
+    Meteor.call('agencies.create', form2doc(insertDoc), (err, res) => {
       this.done(err, res);
     });
     return false;
   },
-  onSuccess(formType, res) {
+  onSuccess(res) {
     Alert.success('Agency created');
     Router.go('agenciesEdit', { _id: res });
   },

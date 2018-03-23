@@ -1,23 +1,27 @@
 import moment from 'moment';
-import Agencies from '/imports/api/agencies/agencies';
+import Projects from '/imports/api/projects/projects';
 import { TableDom } from '/imports/ui/dataTable/helpers';
-import './agenciesListView.html';
+import './projectsListView.html';
 
 const tableOptions = {
   columns: [
     {
-      data: 'agencyName',
-      title: 'Name',
+      data: 'projectName',
+      title: 'Project Name',
       render(value, op, doc) {
-        return `<a href="${Router.path('agenciesEdit', { _id: doc._id })}">${value}</a>`;
+        return `<a href="${Router.path('projectsEdit', { _id: doc._id })}">${value}</a>`;
       },
     },
     {
-      data: 'description',
-      title: 'Description',
+      data: 'projectCommonName',
+      title: 'Common Name',
     },
     {
-      data: 'createdAt',
+      data: 'projectGroup',
+      title: 'Project Group',
+    },
+    {
+      data: 'dateCreated',
       title: 'Created At',
       render(value, type) {
         if (type === 'sort') {
@@ -33,14 +37,14 @@ const tableOptions = {
 };
 
 
-Template.agenciesListView.helpers({
+Template.projectsListView.helpers({
   hasData() {
-    return Agencies.find().count() > 0;
+    return Projects.find().count() > 0;
   },
   tableOptions() {
     return tableOptions;
   },
   tableData() {
-    return () => Agencies.find().fetch();
+    return () => Projects.find().fetch();
   },
 });

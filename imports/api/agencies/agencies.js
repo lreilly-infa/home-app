@@ -2,18 +2,9 @@ import { Mongo } from 'meteor/mongo';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 
 
-const GlobalProjects = new Mongo.Collection('globalProjects');
+const Agencies = new Mongo.Collection('agencies');
 
-const MemberSchema = new SimpleSchema({
-  role: {
-    type: String,
-  },
-  userId: {
-    type: String,
-  },
-});
-
-const ProjectMemberSchema = new SimpleSchema({
+const ProjectMembershipSchema = new SimpleSchema({
   projectId: {
     type: String,
   },
@@ -22,27 +13,26 @@ const ProjectMemberSchema = new SimpleSchema({
   },
 });
 
-GlobalProjects.schema = new SimpleSchema({
+Agencies.schema = new SimpleSchema({
   agencyName: {
     type: String,
-  },
-  commonName: {
-    type: String,
-    optional: true,
   },
   description: {
     type: String,
     optional: true,
   },
+  projectGroupId: {
+    type: String,
+    defaultValue: '',
+  },
   members: {
-    type: [MemberSchema],
-    optional: true,
+    type: [String],
   },
   projects: {
     type: [String],
   },
   projectsMembers: {
-    type: [ProjectMemberSchema],
+    type: [ProjectMembershipSchema],
     optional: true,
   },
   createdAt: {
@@ -78,15 +68,14 @@ GlobalProjects.schema = new SimpleSchema({
   },
 });
 
-GlobalProjects.attachSchema(GlobalProjects.schema);
+Agencies.attachSchema(Agencies.schema);
 
-
-GlobalProjects.helpers({
-  projectsWithUser(userId) {
+Agencies.helpers({
+  projectsOfUser(userId) {
     return (this.projectsMembers || [])
       .filter(m => m.userId === userId)
       .map(m => m.projectId);
   },
 });
 
-export default GlobalProjects;
+export default Agencies;

@@ -1,38 +1,15 @@
 import { DefaultAdminAccessRoles } from '/imports/config/permissions';
-import Agencies from '/imports/api/agencies/agencies';
+import Projects from '/imports/api/projects/projects';
 import { AppController } from './controllers';
-import '/imports/ui/agencies/agenciesListView';
-import '/imports/ui/agencies/agenciesNew';
-import '/imports/ui/agencies/agenciesEdit';
+import '/imports/ui/projects/projectsListView';
+import '/imports/ui/projects/projectsNew';
+import '/imports/ui/projects/projectsEdit';
+
 
 Router.route(
-  'agenciesList', {
-    path: '/agencies',
-    template: Template.agenciesListView,
-    controller: AppController,
-    authorize: {
-      allow() {
-        return Roles.userIsInRole(Meteor.userId(), DefaultAdminAccessRoles);
-      },
-    },
-    waitOn() {
-      return [
-        Meteor.subscribe('agencies.all'),
-      ];
-    },
-    data() {
-      return {
-        title: 'Agencies',
-        subtitle: 'List',
-      };
-    },
-  }
-);
-
-Router.route(
-  'agenciesNew', {
-    path: '/agencies/new',
-    template: Template.agenciesNew,
+  'projectsList', {
+    path: '/projects',
+    template: Template.projectsListView,
     controller: AppController,
     authorize: {
       allow() {
@@ -42,12 +19,35 @@ Router.route(
     waitOn() {
       return [
         Meteor.subscribe('projects.all'),
-        Meteor.subscribe('users.all'),
       ];
     },
     data() {
       return {
-        title: 'Agencies',
+        title: 'Projects',
+        subtitle: 'List',
+      };
+    },
+  }
+);
+
+Router.route(
+  'projectsNew', {
+    path: '/projects/new',
+    template: Template.projectsNew,
+    controller: AppController,
+    authorize: {
+      allow() {
+        return Roles.userIsInRole(Meteor.userId(), DefaultAdminAccessRoles);
+      },
+    },
+    waitOn() {
+      return [
+        Meteor.subscribe('projects.all'),
+      ];
+    },
+    data() {
+      return {
+        title: 'Projects',
         subtitle: 'New',
         doc: {},
       };
@@ -56,9 +56,9 @@ Router.route(
 );
 
 Router.route(
-  'agenciesEdit', {
-    path: '/agencies/:_id/edit',
-    template: Template.agenciesEdit,
+  'projectsEdit', {
+    path: '/projects/:_id/edit',
+    template: Template.projectsEdit,
     controller: AppController,
     authorize: {
       allow() {
@@ -68,18 +68,15 @@ Router.route(
     waitOn() {
       const id = Router.current().params._id;
       return [
-        Meteor.subscribe('agencies.one', id),
-        Meteor.subscribe('projects.all'),
-        Meteor.subscribe('users.all'),
+        Meteor.subscribe('projects.one', id),
       ];
     },
     data() {
       const id = Router.current().params._id;
-
       return {
-        title: 'Agencies',
+        title: 'Projects',
         subtitle: 'Edit',
-        doc: Agencies.findOne(id),
+        doc: Projects.findOne(id),
       };
     },
   }

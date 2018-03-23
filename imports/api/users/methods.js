@@ -2,8 +2,8 @@ import { check, Match } from 'meteor/check';
 
 import { logger } from '/imports/utils/logger';
 import Users, { ChangePasswordSchema, UserCreateFormSchema } from '/imports/api/users/users';
+import Agencies from '/imports/api/agencies/agencies';
 import { HmisClient } from '/imports/api/hmisApi';
-import GlobalProjects from '../globalProjects/globalProjects';
 
 Meteor.methods({
   'users.create'(insertDoc) {
@@ -137,7 +137,7 @@ Meteor.methods({
         },
       },
     };
-    if (projectId && GlobalProjects.find(query).count() === 0) {
+    if (projectId && Agencies.find(query).count() === 0) {
       throw new Meteor.Error(403, 'Not authorized');
     }
 
